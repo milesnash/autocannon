@@ -1,9 +1,11 @@
 'use strict'
 
 const test = require('tap').test
+const path = require('path')
 const validateOpts = require('../lib/validate')
 const helper = require('./helper')
 const { hasWorkerSupport } = require('../lib/util')
+const CustomWorker = require('./mocks/CustomWorker')
 
 test('validateOpts should not return an error with only an url passed in', (t) => {
   t.plan(1)
@@ -227,4 +229,15 @@ test('validateOpts should return an error when forever is used with workers', { 
   const result = validateOpts({ url: 'http://localhost', forever: true, workers: 2 })
   t.ok(result instanceof Error)
   t.equal(result.message, 'Using `forever` option isn\'t currently supported with workers')
+})
+
+test('validateOpts should not return an error when customWorker is a function, class or path to the same', (t) => {
+  t.plan(3)
+
+  let result = validateOpts({ url: 'http://localhost', customWorker: CustomWorker })
+  t.ok(!(result instanceof Error))
+  result = validateOpts({ url: 'http://localhost', customWorker: function () {} })
+  t.ok(!(result instanceof Error))
+  result = validateOpts({ url: 'http://localhost', customWorker: path.resolve(__dirname, './mocks/CustomWorker.js') })
+  t.ok(!(result instanceof Error))
 })
