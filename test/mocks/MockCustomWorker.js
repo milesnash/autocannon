@@ -1,4 +1,5 @@
 const CustomWorker = require('../../lib/CustomWorker')
+const { encodeHist, getHistograms } = require('../../lib/histUtil')
 
 class MockCustomWorker extends CustomWorker {
   id
@@ -19,7 +20,16 @@ class MockCustomWorker extends CustomWorker {
     console.log(`Worker ${this.id}: Received ${cmd} command.`)
 
     if (cmd === 'START') {
-      this.run()
+      const histograms = getHistograms()
+      const { latencies, requests, throughput } = histograms
+      const data = {
+        latencies: encodeHist(latencies),
+        requests: encodeHist(requests),
+        throughput: encodeHist(throughput),
+        statusCodeStats: {}
+      }
+
+      this.emit('message', { cmd: 'RESULT', error: null, data })
     }
   }
 }

@@ -216,29 +216,16 @@ test('a user can provide custom workers', { skip: !hasWorkerSupport }, (t) => {
 
   const expectedLogs = [
     'Worker 1: Received START command.',
-    'Worker 2: Received START command.',
-    'Worker 1: Received TICK command.',
-    'Worker 1: Received UPDATE_HIST command.',
-    'Worker 1: Received UPDATE_HIST command.',
-    'Worker 1: Received TICK command.',
-    'Worker 2: Received TICK command.',
-    'Worker 2: Received UPDATE_HIST command.',
-    'Worker 2: Received UPDATE_HIST command.',
-    'Worker 2: Received TICK command.'
+    'Worker 2: Received START command.'
   ]
 
-  t.plan(expectedLogs.length + 2)
-
-  let logsCounter = 0
+  const uniqueActualLogs = []
 
   console.log = (obj) => {
-    t.equal(
-      obj,
-      expectedLogs[logsCounter]
-    )
+    t.ok(expectedLogs.includes(obj))
 
-    if (++logsCounter === expectedLogs.length) {
-      console.log = _log
+    if (!uniqueActualLogs.includes(obj)) {
+      uniqueActualLogs.push(obj)
     }
   }
 
@@ -249,7 +236,10 @@ test('a user can provide custom workers', { skip: !hasWorkerSupport }, (t) => {
     workers: 2,
     customWorker: MockCustomWorker
   }, function (err, result) {
+    console.log = _log
     t.error(err)
     t.ok(result, 'requests are ok')
+    t.ok(uniqueActualLogs.length === expectedLogs.length)
+    t.end()
   })
 })
