@@ -7,6 +7,7 @@ const http = require('http')
 const initJob = require('../lib/init')
 const { hasWorkerSupport } = require('../lib/util')
 const helper = require('./helper')
+const MockCustomWorker = require('./mocks/MockCustomWorker')
 const httpsServer = helper.startHttpsServer()
 
 test('returns error when no worker support was found', (t) => {
@@ -207,5 +208,48 @@ test('tlsOptions using pfx work as intended in workers', { skip: !hasWorkerSuppo
     t.error(err)
     t.ok(result, 'requests are ok')
     t.end()
+  })
+})
+
+test('a user can provide custom workers', { skip: !hasWorkerSupport }, (t) => {
+  const _log = console.log
+
+  const expectedLogs = [
+    'Worker 1: Received START command.',
+    'Worker 2: Received START command.',
+    'Worker 1: Received TICK command.',
+    'Worker 1: Received UPDATE_HIST command.',
+    'Worker 1: Received UPDATE_HIST command.',
+    'Worker 1: Received TICK command.',
+    'Worker 2: Received TICK command.',
+    'Worker 2: Received UPDATE_HIST command.',
+    'Worker 2: Received UPDATE_HIST command.',
+    'Worker 2: Received TICK command.'
+  ]
+
+  t.plan(expectedLogs.length + 2)
+
+  let logsCounter = 0
+
+  console.log = (obj) => {
+    t.equal(
+      obj,
+      expectedLogs[logsCounter]
+    )
+
+    if (++logsCounter === expectedLogs.length) {
+      console.log = _log
+    }
+  }
+
+  initJob({
+    url: 'https://localhost:' + httpsServer.address().port,
+    connections: 1,
+    amount: 1,
+    workers: 2,
+    customWorker: MockCustomWorker
+  }, function (err, result) {
+    t.error(err)
+    t.ok(result, 'requests are ok')
   })
 })

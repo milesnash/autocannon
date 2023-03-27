@@ -5,7 +5,7 @@ const path = require('path')
 const validateOpts = require('../lib/validate')
 const helper = require('./helper')
 const { hasWorkerSupport } = require('../lib/util')
-const CustomWorker = require('./mocks/CustomWorker')
+const MockCustomWorker = require('./mocks/MockCustomWorker')
 
 test('validateOpts should not return an error with only an url passed in', (t) => {
   t.plan(1)
@@ -234,10 +234,10 @@ test('validateOpts should return an error when forever is used with workers', { 
 test('validateOpts should not return an error when customWorker is a function, class or path to the same', (t) => {
   t.plan(3)
 
-  let result = validateOpts({ url: 'http://localhost', customWorker: CustomWorker })
+  let result = validateOpts({ url: 'http://localhost', customWorker: MockCustomWorker })
   t.ok(!(result instanceof Error))
   result = validateOpts({ url: 'http://localhost', customWorker: function () {} })
   t.ok(!(result instanceof Error))
-  result = validateOpts({ url: 'http://localhost', customWorker: path.resolve(__dirname, './mocks/CustomWorker.js') })
+  result = validateOpts({ url: 'http://localhost', customWorker: path.resolve(__dirname, './mocks/MockCustomWorker.js') })
   t.ok(!(result instanceof Error))
 })
